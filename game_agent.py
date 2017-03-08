@@ -13,6 +13,32 @@ class Timeout(Exception):
     """Subclass base exception for code clarity."""
     pass
 
+def game_terminal_state(game):
+    """
+    Function to determine if game should be terminated based on no legal moves.
+    This would best be incorporated as a class method or property but keeping it
+    simple for now.
+    """
+
+    pass
+
+
+def most_moves_heuristic(game):
+    """
+    Naive heuristic that returns score based on total available moves without
+    regard for moves available to the other player. Note that the active player
+    is the default for get_legal_moves() and game.utility()
+    """
+
+    # get available moves by len of legal moves list for active player
+    available_moves= len(game.get_legal_moves())
+
+    # add available moves to utility of active player (0 if not win or loss)
+    score= game.utility() + float(available_moves)
+
+    return score
+
+
 
 def custom_score(game, player):
     """Calculate the heuristic value of a game state from the point of view
@@ -37,8 +63,7 @@ def custom_score(game, player):
         The heuristic value of the current game state to the specified player.
     """
 
-    # TODO: finish this function!
-    raise NotImplementedError
+    return most_moves_heuristic(game)
 
 
 class CustomPlayer:
@@ -124,19 +149,47 @@ class CustomPlayer:
         # move from the game board (i.e., an opening book), or returning
         # immediately if there are no legal moves
 
+        if not legal_moves:
+            return (-1, -1)
+
         try:
             # The search method call (alpha beta or minimax) should happen in
             # here in order to avoid timeout. The try/except block will
             # automatically catch the exception raised by the search method
             # when the timer gets close to expiring
-            pass
+
+            # initiate search depth
+            if self.iterative:
+                depth= 1
+            else:
+                depth= search_depth
+
+            # conduct iterative DFS or Full DFS depending on flag
+            if self.iterative:
+                while True: # loop "forever" if timeout exception called and moved returned
+                    if self.method== 'minimax':
+                        move= self.minimax(game, depth)
+                    elif self.method== 'alphabeta':
+                        move= self.alphabeta(game, depth)
+                    depth += 1
+
+            else:
+                while depth >= 0:
+                    if self.method== 'minimax':
+                        move= self.minimax(game, depth)
+                    elif self.method== 'alphabeta':
+                        move= self.alphabeta(game, depth)
+                    depth -= 1
+                return move
+
+
 
         except Timeout:
             # Handle any actions required at timeout, if necessary
-            pass
+            return move
 
         # Return the best move from the last completed search iteration
-        raise NotImplementedError
+        return move
 
     def minimax(self, game, depth, maximizing_player=True):
         """Implement the minimax search algorithm as described in the lectures.
@@ -172,8 +225,55 @@ class CustomPlayer:
         if self.time_left() < self.TIMER_THRESHOLD:
             raise Timeout()
 
-        # TODO: finish this function!
-        raise NotImplementedError
+        # implementation adapted from
+        # http://aima.cs.berkeley.edu/python/games.html
+        # http://giocc.com/concise-implementation-of-minimax-through-higher-order-functions.html
+
+        # switch statement using our good friend modulo
+        if depth % 2 == 0:
+            player= game.active_player
+        else:
+            player= game.inactive_player
+
+        def min_play(game_state):
+          if not game.get_legal_moves(player):
+            return game.utility()
+          moves= game.get_legal_moves(player)
+          best_score= float('inf')
+          for move in moves:
+            next_game_state= game.forecast_move(move)
+            score = max_play(next_game_state)
+            if score < best_score:
+              best_move= move
+              best_score= score
+          return best_score
+
+        def max_play(game_state):
+            if not game.get_legal_moves(player):
+                return game.utility()
+            moves= game.get_legal_moves(player)
+            best_score= float('-inf')
+            for move in moves:
+                next_game_state= game.forecast_move(move)
+                score= min_play(next_game_state)
+                if score > best_score:
+                    best_move= move
+                    best_score= score
+            return best_score
+
+
+        moves = game.get_legal_moves(player)
+        best_move = moves[0] # initialize best_move as first on legal move list
+        best_score = float('-inf')
+        for move in moves:
+            next_game_state= game.forecast_move(move)
+            score = min_play(next_game_state)
+            if score > best_score:
+              best_move = move
+              best_score = score
+        return best_move
+
+
 
     def alphabeta(self, game, depth, alpha=float("-inf"), beta=float("inf"), maximizing_player=True):
         """Implement minimax search with alpha-beta pruning as described in the
