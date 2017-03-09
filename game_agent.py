@@ -159,27 +159,22 @@ class CustomPlayer:
             # when the timer gets close to expiring
 
             # initiate search depth
-            if self.iterative:
-                depth= 1
-            else:
-                depth= search_depth
+            if self.iterative depth= 1 else depth= self.search_depth
 
             # conduct iterative DFS or Full DFS depending on flag
             if self.iterative:
                 while True: # loop "forever" if timeout exception called and moved returned
                     if self.method== 'minimax':
-                        move= self.minimax(game, depth)
+                        score, move= self.minimax(game, depth)
                     elif self.method== 'alphabeta':
-                        move= self.alphabeta(game, depth)
+                        score, move= self.alphabeta(game, depth)
                     depth += 1
 
             else:
-                while depth >= 0:
-                    if self.method== 'minimax':
-                        move= self.minimax(game, depth)
-                    elif self.method== 'alphabeta':
-                        move= self.alphabeta(game, depth)
-                    depth -= 1
+                if self.method== 'minimax':
+                    move= self.minimax(game, depth)
+                elif self.method== 'alphabeta':
+                    move= self.alphabeta(game, depth)
                 return move
 
 
