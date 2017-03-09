@@ -23,20 +23,7 @@ def game_terminal_state(game):
     pass
 
 
-def most_moves_heuristic(game):
-    """
-    Naive heuristic that returns score based on total available moves without
-    regard for moves available to the other player. Note that the active player
-    is the default for get_legal_moves() and game.utility()
-    """
 
-    # get available moves by len of legal moves list for active player
-    available_moves= len(game.get_legal_moves())
-
-    # add available moves to utility of active player (0 if not win or loss)
-    score= game.utility() + float(available_moves)
-
-    return score
 
 
 
@@ -63,7 +50,8 @@ def custom_score(game, player):
         The heuristic value of the current game state to the specified player.
     """
 
-    return most_moves_heuristic(game)
+    # TODO: finish this function:
+    raise NotImplementedError
 
 
 class CustomPlayer:
@@ -149,8 +137,7 @@ class CustomPlayer:
         # move from the game board (i.e., an opening book), or returning
         # immediately if there are no legal moves
 
-        if not legal_moves:
-            return (-1, -1)
+        if not legal_moves: return (-1, -1)
 
         try:
             # The search method call (alpha beta or minimax) should happen in
@@ -158,8 +145,9 @@ class CustomPlayer:
             # automatically catch the exception raised by the search method
             # when the timer gets close to expiring
 
-            # initiate search depth
-            if self.iterative depth= 1 else depth= self.search_depth
+            # initiate search depth trying out single line flow control on simple
+            # statments to save space/scrolling
+            depth= 1 if self.iterative else self.search_depth
 
             # conduct iterative DFS or Full DFS depending on flag
             if self.iterative:
@@ -172,12 +160,10 @@ class CustomPlayer:
 
             else:
                 if self.method== 'minimax':
-                    move= self.minimax(game, depth)
+                    score, move= self.minimax(game, depth)
                 elif self.method== 'alphabeta':
-                    move= self.alphabeta(game, depth)
+                    score, move= self.alphabeta(game, depth)
                 return move
-
-
 
         except Timeout:
             # Handle any actions required at timeout, if necessary
@@ -223,50 +209,47 @@ class CustomPlayer:
         # implementation adapted from
         # http://aima.cs.berkeley.edu/python/games.html
         # http://giocc.com/concise-implementation-of-minimax-through-higher-order-functions.html
+        """
+        Notes on what we are doing for future reference. Recursive tree traversal
+        where root is set by initial flag of max_player= True, calculating score
+        starting at depth= -1 (we don't score node== depth because we don't Generate
+        succesors from that node). We take the max of min nodes and min of max nodes
+        switching minimizing and maximizing player by passing True or False into
+        the self.minimax recursive calls.
+        """
+        # handle depth == 0
+        if depth== 0: return self.score(game, self), None
 
-        # switch statement using our good friend modulo
-        if depth % 2 == 0:
-            player= game.active_player
-        else:
-            player= game.inactive_player
+        # define legal moves for active player
+        legal_moves= game.get_legal_moves(game.active_player)
 
-        def min_play(game_state):
-          if not game.get_legal_moves(player):
-            return game.utility()
-          moves= game.get_legal_moves(player)
-          best_score= float('inf')
-          for move in moves:
-            next_game_state= game.forecast_move(move)
-            score = max_play(next_game_state)
-            if score < best_score:
-              best_move= move
-              best_score= score
-          return best_score
+        # handle terminal game state
+        if not legal_moves: return self.score(game, self), (-1, -1)
 
-        def max_play(game_state):
-            if not game.get_legal_moves(player):
-                return game.utility()
-            moves= game.get_legal_moves(player)
-            best_score= float('-inf')
-            for move in moves:
+        # recursive call to minimax with player switch
+        if maximizing_player: # root
+            best_score= float('-inf') # initiate at lowest possible value in the universe
+            for move in legal_moves:
                 next_game_state= game.forecast_move(move)
-                score= min_play(next_game_state)
+                # get min scores
+                score, _= self.minimax(next_game_state, depth - 1, False)
+                # get max of min
                 if score > best_score:
-                    best_move= move
                     best_score= score
-            return best_score
+                    best_move= move
 
+        else: # opponent @ not root
+            best_score= float('inf') # initiate at highest possible value in the universe
+            for move in legal_moves:
+                next_game_state= game.forecast_move(move)
+                # get max scores
+                score, _= self.minimax(next_game_state, depth - 1, True)
+                # get min of max
+                if score < best_score:
+                    best_score= score
+                    best_move= move
 
-        moves = game.get_legal_moves(player)
-        best_move = moves[0] # initialize best_move as first on legal move list
-        best_score = float('-inf')
-        for move in moves:
-            next_game_state= game.forecast_move(move)
-            score = min_play(next_game_state)
-            if score > best_score:
-              best_move = move
-              best_score = score
-        return best_move
+        return best_score, best_move
 
 
 
