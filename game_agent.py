@@ -13,6 +13,36 @@ class Timeout(Exception):
     """Subclass base exception for code clarity."""
     pass
 
+
+def open_move_score(game, player):
+    """The basic evaluation function described in lecture that outputs a score
+    equal to the number of moves open for your computer player on the board.
+
+    Parameters
+    ----------
+    game : `isolation.Board`
+        An instance of `isolation.Board` encoding the current state of the
+        game (e.g., player locations and blocked cells).
+
+    player : hashable
+        One of the objects registered by the game object as a valid player.
+        (i.e., `player` should be either game.__player_1__ or
+        game.__player_2__).
+
+    Returns
+    ----------
+    float
+        The heuristic value of the current game state
+    """
+    if game.is_loser(player):
+        return float("-inf")
+
+    if game.is_winner(player):
+        return float("inf")
+
+    return float(len(game.get_legal_moves(player)))
+
+
 def game_terminal_state(game):
     """
     Function to determine if game should be terminated based on no legal moves.
@@ -50,8 +80,7 @@ def custom_score(game, player):
         The heuristic value of the current game state to the specified player.
     """
 
-    # TODO: finish this function:
-    raise NotImplementedError
+    return open_move_score(game, player)
 
 
 class CustomPlayer:
@@ -131,12 +160,14 @@ class CustomPlayer:
 
         self.time_left = time_left
 
-        # TODO: finish this function!
 
         # Perform any required initializations, including selecting an initial
         # move from the game board (i.e., an opening book), or returning
         # immediately if there are no legal moves
 
+        # initialize move
+        move= None # defensive
+        
         if not legal_moves: return (-1, -1)
 
         try:
@@ -226,6 +257,8 @@ class CustomPlayer:
         # handle terminal game state
         if not legal_moves: return self.score(game, self), (-1, -1)
 
+        # initialize best_move
+        best_move= None
         # recursive call to minimax with player switch
         if maximizing_player: # root
             best_score= float('-inf') # initiate at lowest possible value in the universe
@@ -311,6 +344,8 @@ class CustomPlayer:
         # handle terminal game state
         if not legal_moves: return self.score(game, self), (-1, -1)
 
+        # initialize best_move
+        best_move= None
         # recursive call to minimax with player switch
         if maximizing_player: # root
             best_score= float('-inf') # initiate at lowest possible value in the universe
