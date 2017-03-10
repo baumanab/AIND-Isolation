@@ -291,8 +291,54 @@ class CustomPlayer:
                 to pass the project unit tests; you cannot call any other
                 evaluation function directly.
         """
+
+        # note for minimax we iterate over taking the min of the max and the
+        # max of the min.  Alpha is the max max and beta is the min min (they are the bounds)
+        # for each node. We compare the maximizing players current max min to the node max min
+        # and the minimizing players node min max to the current min max, and prune
+        # when the alpha is >= to the return of the min player and when beta is
+        # <= to the return of the max player.
+
         if self.time_left() < self.TIMER_THRESHOLD:
             raise Timeout()
 
-        # TODO: finish this function!
-        raise NotImplementedError
+        # handle depth == 0
+        if depth== 0: return self.score(game, self), None
+
+        # define legal moves for active player
+        legal_moves= game.get_legal_moves(game.active_player)
+
+        # handle terminal game state
+        if not legal_moves: return self.score(game, self), (-1, -1)
+
+        # recursive call to minimax with player switch
+        if maximizing_player: # root
+            best_score= float('-inf') # initiate at lowest possible value in the universe
+            for move in legal_moves:
+                next_game_state= game.forecast_move(move)
+                # get min scores
+                score, _= self.alphabeta(next_game_state, depth - 1, alpha, beta, False)
+                # get max of min
+                if score > best_score:
+                    best_score= score
+                    best_move= move
+                # update alpha from current (initial is inf)
+                alpha= max(alpha, score)
+                if score >= beta: break
+
+
+        else: # opponent @ not root
+            best_score= float('inf') # initiate at highest possible value in the universe
+            for move in legal_moves:
+                next_game_state= game.forecast_move(move)
+                # get max scores
+                score, _= self.alphabeta(next_game_state, depth - 1,alpha, beta, True)
+                # get min of max
+                if score < best_score:
+                    best_score= score
+                    best_move= move
+                # update beta from curent (initial is -inf)
+                beta= min(beta, score)
+                if score <= alpha: break
+
+        return best_score, best_move
