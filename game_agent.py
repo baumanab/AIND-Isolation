@@ -7,6 +7,7 @@ You must test your agent's strength against a set of agents with known
 relative strength using tournament.py and include the results in your report.
 """
 import random
+import math
 
 
 class Timeout(Exception):
@@ -14,9 +15,10 @@ class Timeout(Exception):
     pass
 
 
-def open_move_score(game, player):
-    """The basic evaluation function described in lecture that outputs a score
-    equal to the number of moves open for your computer player on the board.
+def weighted_openmovediff_score(game, player, weight=1):
+    """This evaluation function outputs a score equal to the difference in the number
+    of moves available to the  two players. Contains an optional weight parameter
+    as a multiplier to the  opponents score.
 
     Parameters
     ----------
@@ -29,6 +31,10 @@ def open_move_score(game, player):
         (i.e., `player` should be either game.__player_1__ or
         game.__player_2__).
 
+    weight: int
+        Optional int argument which weights the oppoents moves by opp_moves * weight.
+        This functions to penalize choices where the opponent has more moves.
+
     Returns
     ----------
     float
@@ -40,29 +46,15 @@ def open_move_score(game, player):
     if game.is_winner(player):
         return float("inf")
 
-    return float(len(game.get_legal_moves(player)))
+    own_moves = len(game.get_legal_moves(player))
+    opp_moves = len(game.get_legal_moves(game.get_opponent(player)))
+    return float(own_moves - opp_moves * weight)
 
 
-def game_terminal_state(game):
-    """
-    Function to determine if game should be terminated based on no legal moves.
-    This would best be incorporated as a class method or property but keeping it
-    simple for now.
-    """
-
-    pass
-
-
-
-
-
-
-def custom_score(game, player):
-    """Calculate the heuristic value of a game state from the point of view
-    of the given player.
-
-    Note: this function should be called from within a Player instance as
-    `self.score()` -- you should not need to call this function directly.
+def center_weighted_moves(game, player, weight, center_weight):
+    """This evaluation function outputs a score based on weighted difference of
+    the difference in own moves and opponent moves, further weighted to favor center_weight
+    row and column squares.
 
     Parameters
     ----------
@@ -70,17 +62,129 @@ def custom_score(game, player):
         An instance of `isolation.Board` encoding the current state of the
         game (e.g., player locations and blocked cells).
 
+    player : hashable
+        One of the objects registered by the game object as a valid player.
+        (i.e., `player` should be either game.__player_1__ or
+        game.__player_2__).
+
+    weight: int
+        Optional int argument which weights the oppoents moves by opp_moves * weight.
+        This functions to penalize choices where the opponent has more moves.
+
+    center_weight: int
+        Optional int argument which weights the oppoents moves by opp_moves * (weight + center_weight).
+        and rewards own moves by own_moves * (center_weight) when moves is
+        in a center row or column.
+
+
+    Returns
+    ----------
+    float
+        The heuristic value of the current game state
+    """
+    if game.is_loser(player):
+        return float("-inf")
+
+    if game.is_winner(player):
+        return float("inf")
+
+    center_col= math.ceil(game.width/2.)
+    center_row= math.ceil(game.height/2.)
+
+    own_moves = game.get_legal_moves(player)
+    opp_moves = game.get_legal_moves(game.get_opponent(player))
+    num_own_moves= len(own_moves)
+    num_opp_moves= len(opp_moves)
+
+    opp_weight, own_weight= weight,1
+
+    for move in own_moves:
+        if move[0]== center_row or move[1]== center_col:
+            own_weight += center_weight
+
+    for move in opp_moves:
+        if move[0]== center_row or move[1]== center_col:
+            opp_weight += center_weight
+
+    return float(num_own_moves * own_weight - num_opp_moves * opp_weight)
+
+
+def centerdecay_weighted_moves(game, player, weight, center_weight):
+        """This evaluation function outputs a score
+
+        Parameters
+        ----------
+        game : `isolation.Board`
+            An instance of `isolation.Board` encoding the current state of the
+            game (e.g., player locations and blocked cells).
+
+        player : hashable
+            One of the objects registered by the game object as a valid player.
+            (i.e., `player` should be either game.__player_1__ or
+            game.__player_2__).
+
+        weight: int
+            Optional int argument which weights the oppoents moves by opp_moves * weight.
+            This functions to penalize choices where the opponent has more moves.
+
+        Returns
+        ----------
+        float
+            The heuristic value of the current game state
+        """
+        if game.is_loser(player):
+            return float("-inf")
+
+        if game.is_winner(player):
+            return float("inf")
+
+        center_col= math.ceil(game.width/2.)
+        center_row= math.ceil(game.height/2.)
+
+        own_moves = game.get_legal_moves(player)
+        opp_moves = game.get_legal_moves(game.get_opponent(player))
+        num_own_moves= len(own_moves)
+        num_opp_moves= len(opp_moves)
+
+        initial_moves_available= float(game.width * game.height)
+
+        num_blank_spaces= len(game.get_blank_spaces())
+
+        decay_factor= num_blank_spaces/initial_moves_available
+
+        opp_weight, own_weight= weight,1
+
+        for move in own_moves:
+            if move[0]== center_row or move[1]== center_col:
+                own_weight += center_weight * decay_factor
+
+        for move in opp_moves:
+            if move[0]== center_row or move[1]== center_col:
+                opp_weight += center_weight * decay_factor
+
+        return float(num_own_moves * own_weight - num_opp_moves * opp_weight)
+
+def custom_score(game, player):
+    """Calculate the heuristic value of a game state from the point of view
+    of the given player.
+    Note: this function should be called from within a Player instance as
+    `self.score()` -- you should not need to call this function directly.
+    Parameters
+    ----------
+    game : `isolation.Board`
+        An instance of `isolation.Board` encoding the current state of the
+        game (e.g., player locations and blocked cells).
     player : object
         A player instance in the current game (i.e., an object corresponding to
         one of the player objects `game.__player_1__` or `game.__player_2__`.)
-
     Returns
     -------
     float
         The heuristic value of the current game state to the specified player.
     """
 
-    return open_move_score(game, player)
+    return centerdecay_weighted_moves(game, player, weight= 1.5, center_weight= 2)
+
 
 
 class CustomPlayer:
@@ -167,7 +271,7 @@ class CustomPlayer:
 
         # initialize move
         move= None # defensive
-        
+
         if not legal_moves: return (-1, -1)
 
         try:
