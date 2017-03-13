@@ -1,7 +1,7 @@
 agent,scoring_function,student_scoring_function,Success_Rate,Round
-ID_Improved,improved_score,weighted_openmovediff_score,65.29,1
-Student,weighted_openmovediff_score,weighted_openmovediff_score,70.43,1
-ID_Improved,improved_score,center_weighted_moves,69.14,2
-Student,center_weighted_moves,center_weighted_moves,71.86,2
-ID_Improved,improved_score,centerdecay_weighted_moves,74.43,3
-Student,centerdecay_weighted_moves,centerdecay_weighted_moves,79.00,3
+ID_Improved,improved_score,weighted_moves,65.29,1
+Student,weighted_moves,weighted_moves,70.43,1
+ID_Improved,improved_score,center_weighted,69.14,2
+Student,center_weighted,center_weighted,71.86,2
+ID_Improved,improved_score,center_decay,74.43,3
+Student,center_decay,center_decay,79.00,3
