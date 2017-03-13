@@ -422,7 +422,7 @@ class Project1Test(unittest.TestCase):
             self.assertIn(move, expected_moves[idx // 2], WRONG_MOVE.format(
                 method, test_depth, expected_moves[idx // 2], move))
 
-    @timeout(20)
+    @timeout(40)
     # @unittest.skip("Skip alpha-beta test.")  # Uncomment this line to skip test
     def test_alphabeta(self):
         """ Test CustomPlayer.alphabeta
