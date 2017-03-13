@@ -15,7 +15,7 @@ class Timeout(Exception):
     pass
 
 
-def weighted_openmovediff_score(game, player, weight=1):
+def weighted_openmovediff_score(game, player, weight=2):
     """This evaluation function outputs a score equal to the difference in the number
     of moves available to the  two players. Contains an optional weight parameter
     as a multiplier to the  opponents score.
@@ -51,7 +51,7 @@ def weighted_openmovediff_score(game, player, weight=1):
     return float(own_moves - opp_moves * weight)
 
 
-def center_weighted_moves(game, player, weight, center_weight):
+def center_weighted_moves(game, player, weight= 2, center_weight= 2):
     """This evaluation function outputs a score based on weighted difference of
     the difference in own moves and opponent moves, further weighted to favor center_weight
     row and column squares.
@@ -100,16 +100,16 @@ def center_weighted_moves(game, player, weight, center_weight):
 
     for move in own_moves:
         if move[0]== center_row or move[1]== center_col:
-            own_weight += center_weight
+            own_weight *= center_weight
 
     for move in opp_moves:
         if move[0]== center_row or move[1]== center_col:
-            opp_weight += center_weight
+            opp_weight *= center_weight
 
-    return float(num_own_moves * own_weight - num_opp_moves * opp_weight)
+    return float((num_own_moves * own_weight) - (num_opp_moves * opp_weight))
 
 
-def centerdecay_weighted_moves(game, player, weight, center_weight):
+def centerdecay_weighted_moves(game, player, weight= 2, center_weight= 2):
         """This evaluation function outputs a score
 
         Parameters
@@ -156,13 +156,13 @@ def centerdecay_weighted_moves(game, player, weight, center_weight):
 
         for move in own_moves:
             if move[0]== center_row or move[1]== center_col:
-                own_weight += center_weight * decay_factor
+                own_weight *= (center_weight * decay_factor)
 
         for move in opp_moves:
             if move[0]== center_row or move[1]== center_col:
-                opp_weight += center_weight * decay_factor
+                opp_weight *= (center_weight * decay_factor)
 
-        return float(num_own_moves * own_weight - num_opp_moves * opp_weight)
+        return float((num_own_moves * own_weight) - (num_opp_moves * opp_weight))
 
 def custom_score(game, player):
     """Calculate the heuristic value of a game state from the point of view
@@ -183,7 +183,7 @@ def custom_score(game, player):
         The heuristic value of the current game state to the specified player.
     """
 
-    return centerdecay_weighted_moves(game, player, weight= 1.5, center_weight= 2)
+    return centerdecay_weighted_moves(game, player)
 
 
 
