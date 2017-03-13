@@ -1,0 +1,7 @@
+agent,scoring_function,Success_Rate,Round
+ID_Improved,improved_score,65.29,1
+Student,weighted_openmovediff_score,70.43,1
+ID_Improved,improved_score,69.14,2
+Student,center_weighted_moves,71.86,1
+ID_Improved,improved_score,74.43,3
+Student,centerdecay_weighted_moves,79.00,1
