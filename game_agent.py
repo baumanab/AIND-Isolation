@@ -17,7 +17,7 @@ class Timeout(Exception):
 
 def weighted_openmovediff_score(game, player, weight=2):
     """This evaluation function outputs a score equal to the difference in the number
-    of moves available to the  two players. Contains an optional weight parameter
+    of moves available to the two players. Contains an optional weight parameter
     as a multiplier to the  opponents score.
 
     Parameters
@@ -72,9 +72,7 @@ def center_weighted_moves(game, player, weight= 2, center_weight= 2):
         This functions to penalize choices where the opponent has more moves.
 
     center_weight: int
-        Optional int argument which weights the oppoents moves by opp_moves * (weight + center_weight).
-        and rewards own moves by own_moves * (center_weight) when moves is
-        in a center row or column.
+        Optional int argument which further weights center moves.
 
 
     Returns
@@ -110,7 +108,10 @@ def center_weighted_moves(game, player, weight= 2, center_weight= 2):
 
 
 def centerdecay_weighted_moves(game, player, weight= 2, center_weight= 2):
-        """This evaluation function outputs a score
+        """This evaluation function outputs a score based on weighted difference of
+        the difference in own moves and opponent moves, further weighted to favor center_weight
+        row and column squares. An additional decay factor has been added which
+        decreases center weighting as a function of the number of unblocked squares.
 
         Parameters
         ----------
@@ -126,6 +127,10 @@ def centerdecay_weighted_moves(game, player, weight= 2, center_weight= 2):
         weight: int
             Optional int argument which weights the oppoents moves by opp_moves * weight.
             This functions to penalize choices where the opponent has more moves.
+
+        center_weight: int
+            Optional int argument which further weights center moves.
+
 
         Returns
         ----------
